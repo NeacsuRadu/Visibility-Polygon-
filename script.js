@@ -7,6 +7,7 @@ window.onload = function(){
 	canvas.addEventListener( "mousedown", clickEventsHandler, false );
 	document.addEventListener("mousemove", mouseMoveHandler, false);
 	
+	var polygonSet = false;
 	var mouseIn = true;
 	var mouseX = 0;
 	var mouseY = 0;
@@ -25,8 +26,7 @@ window.onload = function(){
 		window.requestAnimationFrame(draw);
 		canvasContext.clearRect(0, 0, canvas.width, canvas.height);
 		
-		if(linkedList.size > 0)
-		{
+		if(linkedList.size > 0){
 			canvasContext.beginPath();
 			canvasContext.moveTo(linkedList.first.info.y, linkedList.first.info.x);
 			
@@ -36,10 +36,12 @@ window.onload = function(){
 				it = it.next;
 			}
 			
-			if( mouseIn == true ){
+			if( mouseIn == true && polygonSet == false ){
 				canvasContext.lineTo(mouseX, mouseY);
 			}
 
+			if( polygonSet == true )
+				canvasContext.closePath();
 			canvasContext.stroke();
 		}
 		
@@ -49,7 +51,12 @@ window.onload = function(){
 	
 	function clickEventsHandler(e){
 		var point = getPoint(e.clientY, e.clientX);
-		linkedList.add( point );
+		if(linkedList.size > 0 && (point.x - linkedList.first.info.x <= 3 || point.x - linkedList.first.info.x <= -3) && (point.y - linkedList.first.info.y <= 3 || point.y - linkedList.first.info.y <= -3)){
+			polygonSet = true;
+		}
+		else{
+			linkedList.add( point );
+		}
 	};
 	
 	function mouseMoveHandler(e){
@@ -149,3 +156,18 @@ function getPoint(x, y){
 	
 	return that;
 }
+
+
+function determinant( var a, var b, var c ){
+	return (a.x * b.y ) + (b.x * c.y ) + (c.x * a.y ) - (c.x * b.y) - (c.y * a.x) - (b.x * a.y);
+};
+
+function curba( var a, var b, var c ){
+	var det = determinant(a, b, c);
+	if( det < 0 )
+		return -1;
+	if( det > 0 )
+		return 1;
+	return 0;
+};
+
