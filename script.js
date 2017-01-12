@@ -1,4 +1,67 @@
 window.onload = function(){
+	var canvas = document.getElementById("canvas");
+	var canvasContext = canvas.getContext("2d");
+	canvas.width = 600;
+	canvas.height = 600;
+	
+	canvas.addEventListener( "mousedown", clickEventsHandler, false );
+	document.addEventListener("mousemove", mouseMoveHandler, false);
+	
+	var mouseIn = true;
+	var mouseX = 0;
+	var mouseY = 0;
+	
+	var linkedList = getLinkedList();
+	
+	
+	draw();
+	
+	
+	
+	
+	
+	
+	function draw(){
+		window.requestAnimationFrame(draw);
+		canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+		
+		if(linkedList.size > 0)
+		{
+			canvasContext.beginPath();
+			canvasContext.moveTo(linkedList.first.info.y, linkedList.first.info.x);
+			
+			var it = linkedList.first.next;
+			while( it != linkedList.first ){
+				canvasContext.lineTo(it.info.y, it.info.x);
+				it = it.next;
+			}
+			
+			if( mouseIn == true ){
+				canvasContext.lineTo(mouseX, mouseY);
+			}
+
+			canvasContext.stroke();
+		}
+		
+		
+	};
+	
+	
+	function clickEventsHandler(e){
+		var point = getPoint(e.clientY, e.clientX);
+		linkedList.add( point );
+	};
+	
+	function mouseMoveHandler(e){
+		if( e.clientX <= canvas.width && e.clientX > 0 && e.clientY <= canvas.height && e.clientY > 0 ){
+			mouseIn = true;
+			mouseX = e.clientX;
+			mouseY = e.clientY;
+		}
+		else{
+			mouseIn = false;
+		}
+	};
 	
 	
 };
@@ -17,7 +80,9 @@ function getLinkedList(){
 	
 	that.first = null;
 	that.last = null;
+	that.size = 0;
 	that.add = function( info ){
+		++that.size;
 		if( that.first == null ){
 			that.first = that.last = getNode(info);
 			that.first.next = that.first.prev = that.first;
@@ -60,6 +125,7 @@ function getLinkedList(){
 			node.next.prev = node.prev;
 		}
 		delete node;
+		--that.size;
 	};
 	
 	return that;
@@ -73,5 +139,13 @@ function getNode( info ){
 	that.next = null;
 	
 	return that;
+};
+
+function getPoint(x, y){
+	var that = {};
 	
+	that.x = x;
+	that.y = y;
+	
+	return that;
 }
