@@ -8,12 +8,14 @@ window.onload = function(){
 	document.addEventListener("mousemove", mouseMoveHandler, false);
 	
 	var polygonSet = false;
+	var youCanDoItBuddy = false;
 	var mouseIn = true;
 	var mouseX = 0;
 	var mouseY = 0;
 	var itt;
 	var iter = 0;
 	var vec = new Array();
+	var inters;
 	var linkedList = getLinkedList();
 	
 	draw();
@@ -21,6 +23,7 @@ window.onload = function(){
 	
 	function draw(){
 		
+		console.log("da");
 		if( polygonSet == false )
 		{
 			window.requestAnimationFrame(draw);
@@ -48,10 +51,50 @@ window.onload = function(){
 				}
 			}
 		}
-		else
+		else if( polygonSet == true && youCanDoItBuddy == false )
 		{
 			canvasContext.clearRect(0, 0, canvas.width, canvas.height);
 			drawPolygonByTriangles();
+		}
+		else
+		{
+			window.requestAnimationFrame(draw);
+			canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+			
+			for( var i = 0; i < vec.length; ++ i )
+			{
+				canvasContext.beginPath();
+				canvasContext.moveTo(vec[i].e1.a.y, vec[i].e1.a.x);  
+				canvasContext.lineTo(vec[i].e1.b.y, vec[i].e1.b.x);
+				canvasContext.lineTo(vec[i].e2.b.y, vec[i].e2.b.x);
+				canvasContext.closePath();
+				canvasContext.stroke();
+			}
+			
+			if( mouseIn == true )
+			{
+				getIntersections( mouseY, mouseX );
+				var rep = inters.length / 2;
+				var poz = 0;
+				for( var i = 0; i < rep; ++i )
+				{
+					var pmisto = getPoint( mouseY, mouseX );
+					var p1 = inters[poz];
+					poz++;
+					var p2 = inters[poz];
+					poz++;
+					
+					canvasContext.strokeStyle = "red";
+					
+					canvasContext.beginPath();
+					canvasContext.moveTo(pmisto.y, pmisto.x);  
+					canvasContext.lineTo(p1.y, p1.x);
+					canvasContext.lineTo(p2.y, p2.x);
+					canvasContext.closePath();
+					canvasContext.fill();
+					
+				}
+			}
 		}
 	};
 	
@@ -68,12 +111,17 @@ window.onload = function(){
 		if( iter <= vec.length - 1 ){
 			setTimeout( drawPolygonByTriangles, 100 );
 		}
+		else{
+			youCanDoItBuddy = true;
+			draw();
+		}
 	};
 	
 	function clickEventsHandler(e){
 		var point = getPoint(e.clientY, e.clientX);
 		if(linkedList.size > 0 && (point.x - linkedList.first.info.x <= 3 || point.x - linkedList.first.info.x <= -3) && (point.y - linkedList.first.info.y <= 3 || point.y - linkedList.first.info.y <= -3)){
 			polygonSet = true;
+			console.log("nu nu nu");
 			computeTriangulation();
 		}
 		else{
@@ -220,6 +268,150 @@ window.onload = function(){
 		}
 		setEdges();
 		getTriangles();
+	};
+	
+	function intersect( pmisto, celalalt, muchie ){
+		var a = pmisto;
+		var b = celalalt;
+		var c = muchie.a;
+		var d = muchie.b;
+		
+		var a1 = b.y - a.y;
+		var b1 = a.x - b.x;
+		var c1 = a.y * b.x - a.x * b.y;
+		
+		var a2 = d.y - c.y;
+		var b2 = c.x - d.x;
+		var c2 = c.y * d.x - c.x * d.y;
+		
+		var x = (b1 * c2 - c1 * b2)/ ( a1 * b2 - b1 * a2 );
+		var y = (a2 * c1 - a1 * c2)/ ( a1 * b2 - b1 * a2 );
+		
+		var s = getPoint( x, y );
+		
+		return s;
+	};
+	
+	function functie( t, e, p1, p2, pmisto ){
+		var e1;
+		var e2;
+		
+		if( t.e1 == e ){
+			e1 = t.e2;
+			e2 = t.e3;
+		}
+		else if( t.e2 == e ){
+			e1 = t.e3;
+			e2 = t.e1;
+		}
+		else {
+			e1 = t.e1;
+			e2 = t.e2;
+		}
+		
+		if( curba(pmisto, p1, e1.b) < 0 )
+		{
+			var cel_mai_misto_point;
+			
+			if( curba(pmisto, p2, e1.b) >= 0 )
+			{
+				cel_mai_misto_point = e1.b;
+			}
+			else
+			{
+				cel_mai_misto_point = p2;
+			}
+			
+			if( e1.dual == null )
+			{
+				var q1 = intersect( pmisto, p1, e1 );
+				var q2 = intersect( pmisto, cel_mai_misto_point, e1);
+				
+				inters.push(q1);
+				inters.push(q2);
+			}
+			else
+			{
+				functie( e1.dual.t, e1.dual, p1, cel_mai_misto_point, pmisto );
+			}
+		}
+		
+		if( curba(pmisto, p2, e2.a) > 0 )
+		{
+			var cel_mai_misto_point;
+			
+			if( curba(pmisto, p1, e2.a) <= 0 )
+			{
+				cel_mai_misto_point = e2.a;
+			}
+			else
+			{
+				cel_mai_misto_point = p1;
+			}
+			
+			if( e2.dual == null )
+			{
+				var q1 = intersect(pmisto, cel_mai_misto_point, e2);
+				var q2 = intersect(pmisto, p2, e2);
+				
+				inters.push(q1);
+				inters.push(q2);
+			}
+			else
+			{
+				functie( e2.dual.t, e2.dual, cel_mai_misto_point, p2, pmisto);
+			}
+		}
+		
+	};
+	
+	function getIntersections(x, y){
+		inters = new Array();
+		
+		var pmisto = getPoint( x, y );
+		
+		for( var i = 0; i < vec.length; ++i )
+		{
+			var nr = 0;
+			nr += curba(vec[i].e1.a, vec[i].e1.b, pmisto);
+			nr += curba(vec[i].e2.a, vec[i].e2.b, pmisto);
+			nr += curba(vec[i].e3.a, vec[i].e3.b, pmisto);
+			
+			if( nr == 3 || nr == -3 )
+			{
+				if( vec[i].e1.dual != null )
+				{
+					functie( vec[i].e1.dual.t, vec[i].e1.dual, vec[i].e1.dual.b, vec[i].e1.dual.a, pmisto );
+				}
+				else
+				{
+					inters.push(vec[i].e1.a);
+					inters.push(vec[i].e1.b);
+				}
+				
+				if( vec[i].e2.dual != null )
+				{
+					functie( vec[i].e2.dual.t, vec[i].e2.dual, vec[i].e2.dual.b, vec[i].e2.dual.a, pmisto );
+				}
+				else
+				{
+					inters.push(vec[i].e2.a);
+					inters.push(vec[i].e2.b);
+				}
+				
+				if( vec[i].e3.dual != null )
+				{
+					functie( vec[i].e3.dual.t, vec[i].e3.dual, vec[i].e3.dual.b, vec[i].e3.dual.a, pmisto );
+				}
+				else
+				{
+					inters.push(vec[i].e3.a);
+					inters.push(vec[i].e3.b);
+				}
+				
+				break;
+			}
+		}
 	};
 		
 };
