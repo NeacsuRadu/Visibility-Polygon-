@@ -22,8 +22,6 @@ window.onload = function(){
 	
 	
 	function draw(){
-		
-		console.log("da");
 		if( polygonSet == false )
 		{
 			window.requestAnimationFrame(draw);
@@ -119,12 +117,11 @@ window.onload = function(){
 	
 	function clickEventsHandler(e){
 		var point = getPoint(e.clientY, e.clientX);
-		if(linkedList.size > 0 && (point.x - linkedList.first.info.x <= 3 || point.x - linkedList.first.info.x <= -3) && (point.y - linkedList.first.info.y <= 3 || point.y - linkedList.first.info.y <= -3)){
+		if(linkedList.size > 0 && (point.x - linkedList.first.info.x <= 3 && point.x - linkedList.first.info.x >= -3) && (point.y - linkedList.first.info.y <= 3 && point.y - linkedList.first.info.y >= -3)){
 			polygonSet = true;
-			console.log("nu nu nu");
 			computeTriangulation();
 		}
-		else{
+		else if(polygonSet == false){
 			linkedList.add( point );
 		}
 	};
