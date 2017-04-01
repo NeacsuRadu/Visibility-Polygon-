@@ -117,7 +117,7 @@ window.onload = function(){
 	
 	function clickEventsHandler(e){
 		var point = getPoint(e.clientY, e.clientX);
-		if(linkedList.size > 0 && (point.x - linkedList.first.info.x <= 3 && point.x - linkedList.first.info.x >= -3) && (point.y - linkedList.first.info.y <= 3 && point.y - linkedList.first.info.y >= -3)){
+		if(linkedList.size > 0 && (point.x - linkedList.first.info.x <= 8 && point.x - linkedList.first.info.x >= -8) && (point.y - linkedList.first.info.y <= 8 && point.y - linkedList.first.info.y >= -8)){
 			polygonSet = true;
 			computeTriangulation();
 		}
